@@ -1,10 +1,11 @@
 package com.test
 
 import akka.actor.{Props, Actor, ActorSystem}
+import com.test.hello.Hello
+
 import com.typesafe.config.ConfigFactory
 
 object BackendApp extends App {
-
   val conf =
     """
       akka {
@@ -31,7 +32,7 @@ object BackendApp extends App {
 
 class Simple extends Actor {
   def receive = {
-    case m =>
-      println(s"received $m!")
+    case Hello(name) =>
+      println(name)
   }
 }

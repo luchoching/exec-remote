@@ -1,10 +1,11 @@
 package com.test
 
 import akka.actor.{Props, ActorSystem}
+import com.test.hello.Hello
 import com.typesafe.config.ConfigFactory
 
-object FrontendApp extends App {
 
+object FrontendApp extends App {
   val conf =
     """
       akka {
@@ -30,6 +31,6 @@ object FrontendApp extends App {
 
   val simple = frontend.actorSelection(path)
 
-  simple ! "Hello Remote World!"
+  simple ! Hello("park")
 
 }
