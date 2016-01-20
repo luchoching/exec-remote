@@ -69,3 +69,47 @@ class RemoteLookupProxy(path: String) extends Actor with ActorLogging {
       actor forward msg
   }
 }
+
+trait ConfiguredRemoteBoxOfficeDeployment extends BoxOfficeCreator { this: Actor =>
+
+  override def createBoxOffice = {
+    context.actorOf(Props[RemoteBoxOfficeForwarder],
+      "forwarder")
+  }
+}
+
+class RemoteBoxOfficeForwarder extends Actor with ActorLogging {
+  context.setReceiveTimeout(3 seconds)
+
+  deployAndWatch()
+
+  def deployAndWatch(): Unit = {
+    val actor = context.actorOf(Props[BoxOffice], "boxOffice")
+    context.watch(actor)
+    log.info("switching to maybe active state")
+    context.become(maybeActive(actor))
+    context.setReceiveTimeout(Duration.Undefined)
+  }
+
+  def receive = deploying
+
+  def deploying: Receive = {
+
+    case ReceiveTimeout =>
+      deployAndWatch()
+
+    case msg: Any =>
+      log.error(s"Ignoring message $msg, remote actor is not ready yet.")
+  }
+
+  def maybeActive(actor: ActorRef): Receive = {
+    case Terminated(actorRef) =>
+      log.info("Actor $actorRef terminated.")
+      log.info("switching to deploying state")
+      context.become(deploying)
+      context.setReceiveTimeout(3 seconds)
+      deployAndWatch()
+
+    case msg: Any => actor forward msg
+  }
+}
