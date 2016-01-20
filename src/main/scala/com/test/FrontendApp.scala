@@ -21,6 +21,10 @@ object FrontendApp extends App {
           }
         }
       }
+
+      akka.actor.serialization-bindings {
+        "com.trueaccord.scalapb.GeneratedMessage" = proto
+       }
     """.stripMargin
 
   val config = ConfigFactory.parseString(conf)
